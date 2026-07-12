@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/services/sound_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
-import 'core/widgets/demo_watermark.dart';
 import 'features/cards/presentation/cubit/cards_cubit.dart';
 import 'features/cards/presentation/pages/wallet_home_page.dart';
 import 'features/payment/presentation/cubit/payment_cubit.dart';
@@ -51,10 +50,6 @@ class _AuroraWalletAppState extends State<AuroraWalletApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       themeMode: ThemeMode.dark,
-      builder: (context, child) {
-        // Wrap EVERYTHING in the persistent, non-dismissible demo watermark.
-        return DemoWatermark(child: child ?? const SizedBox.shrink());
-      },
       home: MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => CardsCubit()),

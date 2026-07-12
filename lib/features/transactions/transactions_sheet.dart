@@ -17,16 +17,17 @@ class TransactionsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.16,
-      minChildSize: 0.16,
-      maxChildSize: 0.86,
+      initialChildSize: 0.6,
+      minChildSize: 0.35,
+      maxChildSize: 0.92,
       snap: true,
-      snapSizes: const [0.16, 0.5, 0.86],
+      snapSizes: const [0.35, 0.6, 0.92],
+      expand: false,
       builder: (context, scrollController) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.surface.withValues(alpha: 0.82),
