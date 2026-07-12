@@ -196,7 +196,7 @@ class _PaymentOverlayState extends State<PaymentOverlay>
     final card = state.card;
     final at = state.completedAt ?? DateTime.now();
     final ts =
-        '${at.year}-${_2(at.month)}-${_2(at.day)} ${_2(at.hour)}:${_2(at.minute)}:${_2(at.second)}';
+        '${at.year}-${_pad2(at.month)}-${_pad2(at.day)} ${_pad2(at.hour)}:${_pad2(at.minute)}:${_pad2(at.second)}';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -278,5 +278,5 @@ class _PaymentOverlayState extends State<PaymentOverlay>
     );
   }
 
-  String _2(int n) => n.toString().padLeft(2, '0');
+  String _pad2(int n) => n.toString().padLeft(2, '0');
 }

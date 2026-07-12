@@ -22,7 +22,3 @@ android/key.properties
 
 # OS
 .DS_Store
-
-# Native splash / generated
-android/app/src/main/res/drawable*/launch_background.xml
-android/app/src/main/res/values*/styles.xml

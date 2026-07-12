@@ -206,7 +206,7 @@ class _WalletHomePageState extends State<WalletHomePage>
   }
 
   Widget _quickAccessView() {
-    final items = const [
+    const items = [
       ['Boarding pass', Icons.flight_rounded],
       ['Transit card', Icons.directions_transit_rounded],
       ['Event ticket', Icons.local_activity_rounded],

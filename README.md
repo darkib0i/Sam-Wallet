@@ -82,25 +82,26 @@ lib/
 
 ## First-time setup
 
-This repository contains the Dart source, `pubspec.yaml`, a ready-made
-`AndroidManifest.xml`, and `MainActivity.kt`. Generate the rest of the Android
-build scaffolding (Gradle wrapper, resources, etc.) with `flutter create`,
-which will **not** touch `lib/` or `pubspec.yaml`:
+The full Android project (`android/`) is committed, so no `flutter create` step
+is needed — just fetch packages:
 
 ```bash
-# From the project root:
-flutter create --platforms=android --org com.aurora --project-name aurora_wallet .
-
-# flutter create may overwrite the manifest/MainActivity with defaults.
-# If it does, restore the two committed files:
-git checkout -- android/app/src/main/AndroidManifest.xml
-git checkout -- android/app/src/main/kotlin/com/aurora/wallet/MainActivity.kt
-
 flutter pub get
 ```
 
-> If you used a different `--org`, keep the `MainActivity.kt` package path and
-> the Gradle `applicationId` in sync.
+Application id: `com.aurora.aurora_wallet`. Verified toolchain:
+
+| Component | Version |
+|-----------|---------|
+| Flutter   | 3.44.6 (stable) |
+| Gradle wrapper | 8.14.3 |
+| Android Gradle Plugin | 8.9.1 |
+| Kotlin | 2.1.20 |
+| compileSdk / targetSdk | 36 |
+
+> Newer Flutter templates default to AGP 9.x / Gradle 9.x. This project is
+> pinned to the AGP 8.9.1 / Gradle 8.14.3 combination it was built and verified
+> against; bump both together if you want the newer chain.
 
 ### Optional: native splash ("Loading Wallet…")
 
