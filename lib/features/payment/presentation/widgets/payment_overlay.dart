@@ -341,22 +341,29 @@ class _TestPaymentChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.demoBadge.withValues(alpha: 0.16),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.demoBadge.withValues(alpha: 0.5)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.science_rounded, color: AppColors.demoBadge, size: 15),
-          SizedBox(width: 7),
-          Text(
-            'TEST PAYMENT',
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.textSecondary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'Test payment',
             style: TextStyle(
-              color: AppColors.demoBadge,
+              color: AppColors.textSecondary,
               fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
             ),
           ),
         ],
