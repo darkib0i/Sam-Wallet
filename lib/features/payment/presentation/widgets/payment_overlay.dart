@@ -7,12 +7,12 @@ import '../../../../core/services/sound_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../cubit/payment_cubit.dart';
 
-/// Full-screen overlay for the *simulated* payment journey.
+/// Full-screen overlay for the simulated ("test payment") journey.
 ///
-/// Renders nothing when idle. During detecting/processing it shows a glowing
-/// aurora circle that expands and pulses; on completion a checkmark rotates in
-/// and a neutral "Test transaction complete — Demo mode" panel appears with a
-/// timestamp (no approval language, no authorization code).
+/// Renders nothing when idle. Detecting/processing shows a pulsing contactless
+/// ring; completion shows a smooth success check. A persistent "TEST PAYMENT"
+/// chip is shown throughout — this is a UI benchmark, not a real transaction,
+/// and that stays legible at every phase.
 class PaymentOverlay extends StatefulWidget {
   final SoundService soundService;
   const PaymentOverlay({super.key, required this.soundService});
@@ -31,11 +31,11 @@ class _PaymentOverlayState extends State<PaymentOverlay>
     super.initState();
     _pulse = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     _check = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 820),
     );
   }
 
@@ -64,30 +64,41 @@ class _PaymentOverlayState extends State<PaymentOverlay>
 
         return Positioned.fill(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
-              color: Colors.black.withValues(alpha: 0.72),
-              child: SafeArea(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(),
-                    _glowCircle(completed),
-                    const SizedBox(height: 40),
-                    _statusText(state),
-                    const Spacer(),
-                    if (completed) _completedPanel(context, state),
-                    if (!completed)
-                      TextButton(
-                        onPressed: () =>
-                            context.read<PaymentCubit>().dismiss(),
-                        child: const Text(
-                          'Cancel test',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.3),
+                  radius: 1.1,
+                  colors: [
+                    AppColors.accent.withValues(alpha: 0.22),
+                    Colors.black.withValues(alpha: 0.86),
                   ],
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      const _TestPaymentChip(),
+                      const Spacer(),
+                      _hero(completed),
+                      const SizedBox(height: 34),
+                      _title(state),
+                      if (completed) ...[
+                        const SizedBox(height: 24),
+                        _receiptCard(context, state),
+                      ],
+                      const Spacer(),
+                      if (completed)
+                        _doneButton(context)
+                      else
+                        _cancelButton(context),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -97,62 +108,55 @@ class _PaymentOverlayState extends State<PaymentOverlay>
     );
   }
 
-  Widget _glowCircle(bool completed) {
+  // ---- Hero animation -----------------------------------------------------
+
+  Widget _hero(bool completed) {
     return AnimatedBuilder(
       animation: Listenable.merge([_pulse, _check]),
       builder: (context, _) {
-        final pulse = 0.85 + (_pulse.value * 0.25);
-        final ringScale = completed ? 1.0 : pulse;
         return SizedBox(
-          width: 200,
-          height: 200,
+          width: 168,
+          height: 168,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Expanding glow.
+              if (!completed) ...[
+                _ring(1.0 + _pulse.value * 0.35, 0.28),
+                _ring(0.78 + _pulse.value * 0.22, 0.5),
+              ] else
+                _ring(1.15, 0.18),
+              // Core disc.
               Container(
-                width: 180 * ringScale,
-                height: 180 * ringScale,
+                width: 116,
+                height: 116,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.accent.withValues(alpha: 0.55),
-                      AppColors.accentAlt.withValues(alpha: 0.10),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.2, 0.7, 1.0],
-                  ),
-                ),
-              ),
-              // Solid core.
-              Container(
-                width: 120,
-                height: 120,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.auroraGradient,
+                  gradient: completed
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.success, Color(0xFF2BB673)],
+                        )
+                      : AppColors.auroraGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accentGlow,
-                      blurRadius: 40,
+                      color: (completed
+                              ? AppColors.success
+                              : AppColors.accentGlow)
+                          .withValues(alpha: 0.55),
+                      blurRadius: 46,
                       spreadRadius: 2,
                     ),
                   ],
                 ),
                 child: completed
-                    ? Transform.rotate(
-                        // Checkmark rotates + scales into view.
-                        angle: (1 - Curves.easeOutBack.transform(_check.value)) *
-                            0.9,
-                        child: Transform.scale(
-                          scale: Curves.easeOutBack.transform(_check.value),
-                          child: const Icon(Icons.check_rounded,
-                              color: Colors.white, size: 64),
-                        ),
+                    ? Transform.scale(
+                        scale: Curves.easeOutBack.transform(_check.value),
+                        child: const Icon(Icons.check_rounded,
+                            color: Colors.white, size: 66),
                       )
                     : const Icon(Icons.contactless_rounded,
-                        color: Colors.white, size: 54),
+                        color: Colors.white, size: 52),
               ),
             ],
           ),
@@ -161,11 +165,30 @@ class _PaymentOverlayState extends State<PaymentOverlay>
     );
   }
 
-  Widget _statusText(PaymentState state) {
+  Widget _ring(double scale, double alpha) {
+    return Transform.scale(
+      scale: scale,
+      child: Container(
+        width: 130,
+        height: 130,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.accentGlow.withValues(alpha: alpha),
+            width: 2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---- Text ---------------------------------------------------------------
+
+  Widget _title(PaymentState state) {
     final label = switch (state.phase) {
-      PaymentPhase.detecting => 'Simulated field detected…',
-      PaymentPhase.processing => 'Running test transaction…',
-      PaymentPhase.completed => 'Test transaction complete',
+      PaymentPhase.detecting => 'Reading card…',
+      PaymentPhase.processing => 'Processing…',
+      PaymentPhase.completed => 'Test payment complete',
       PaymentPhase.idle => '',
     };
     return Column(
@@ -174,109 +197,170 @@ class _PaymentOverlayState extends State<PaymentOverlay>
           label,
           style: const TextStyle(
             color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         const Text(
-          'DEMO MODE · no real payment',
+          'Simulation · no real payment and no money moved',
+          textAlign: TextAlign.center,
           style: TextStyle(
-            color: AppColors.demoBadge,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            color: AppColors.textSecondary,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
   }
 
-  Widget _completedPanel(BuildContext context, PaymentState state) {
+  // ---- Receipt card -------------------------------------------------------
+
+  Widget _receiptCard(BuildContext context, PaymentState state) {
     final card = state.card;
     final at = state.completedAt ?? DateTime.now();
     final ts =
-        '${at.year}-${_pad2(at.month)}-${_pad2(at.day)} ${_pad2(at.hour)}:${_pad2(at.minute)}:${_pad2(at.second)}';
+        '${at.year}-${_pad2(at.month)}-${_pad2(at.day)}  ${_pad2(at.hour)}:${_pad2(at.minute)}';
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.science_rounded,
-              color: AppColors.demoBadge, size: 28),
-          const SizedBox(height: 10),
-          const Text(
-            'Test Transaction Complete — Demo Mode',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'This did not contact any payment network and no money moved.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
-          ),
-          const SizedBox(height: 16),
-          _kv('Card used', card == null
-              ? '—'
-              : '${card.issuerName} ${card.productTier} ···· ${card.last4}'),
-          _kv('Recorded at', ts),
-          _kv('Mode', 'UI/UX benchmark (simulation)'),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          Row(
+            children: [
+              Container(
+                width: 46,
+                height: 30,
+                decoration: BoxDecoration(
+                  gradient: card == null
+                      ? AppColors.auroraGradient
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [card.gradientStart, card.gradientEnd],
+                        ),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              onPressed: () => context.read<PaymentCubit>().dismiss(),
-              child: const Text('Done',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  card == null
+                      ? '—'
+                      : '${card.issuerName} · ${card.cardNetwork}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
+              Text(
+                card == null ? '' : '···· ${card.last4}',
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13),
+              ),
+            ],
           ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 14),
+          _row('Status', 'Test payment · simulated'),
+          _row('Time', ts),
         ],
       ),
     );
   }
 
-  Widget _kv(String k, String v) {
+  Widget _row(String k, String v) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            width: 92,
-            child: Text(k,
-                style: const TextStyle(
-                    color: AppColors.textMuted, fontSize: 12.5)),
-          ),
-          Expanded(
-            child: Text(v,
-                style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600)),
-          ),
+          Text(k,
+              style:
+                  const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          Text(v,
+              style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
+    );
+  }
+
+  // ---- Buttons ------------------------------------------------------------
+
+  Widget _doneButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        onPressed: () => context.read<PaymentCubit>().dismiss(),
+        child: const Text('Done',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _cancelButton(BuildContext context) {
+    return TextButton(
+      onPressed: () => context.read<PaymentCubit>().dismiss(),
+      child: const Text('Cancel',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
     );
   }
 
   String _pad2(int n) => n.toString().padLeft(2, '0');
+}
+
+/// Persistent chip that keeps the simulation nature legible at every phase.
+class _TestPaymentChip extends StatelessWidget {
+  const _TestPaymentChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.demoBadge.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.demoBadge.withValues(alpha: 0.5)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.science_rounded, color: AppColors.demoBadge, size: 15),
+          SizedBox(width: 7),
+          Text(
+            'TEST PAYMENT',
+            style: TextStyle(
+              color: AppColors.demoBadge,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

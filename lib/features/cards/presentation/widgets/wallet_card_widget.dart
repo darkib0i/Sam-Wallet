@@ -53,6 +53,12 @@ class WalletCardWidget extends StatelessWidget {
                     painter: _CardLinesPainter(color: fg.withValues(alpha: 0.14)),
                   ),
                 ),
+                // Curved metallic sheen band sweeping down the right side.
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _SheenBandPainter(color: fg),
+                  ),
+                ),
                 // Diagonal sheen.
                 Positioned.fill(
                   child: DecoratedBox(
@@ -240,5 +246,60 @@ class _CardLinesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CardLinesPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+/// Draws a soft curved highlight band sweeping down the right side of the card,
+/// giving a subtle metallic/foil sheen like premium bank cards.
+class _SheenBandPainter extends CustomPainter {
+  final Color color;
+  const _SheenBandPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width * 0.62, 0)
+      ..quadraticBezierTo(
+        size.width * 0.52,
+        size.height * 0.5,
+        size.width * 0.72,
+        size.height,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          color.withValues(alpha: 0.16),
+          color.withValues(alpha: 0.04),
+          color.withValues(alpha: 0.12),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawPath(path, paint);
+
+    // Thin bright edge along the curve.
+    final edge = Path()
+      ..moveTo(size.width * 0.62, 0)
+      ..quadraticBezierTo(
+        size.width * 0.52,
+        size.height * 0.5,
+        size.width * 0.72,
+        size.height,
+      );
+    canvas.drawPath(
+      edge,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = color.withValues(alpha: 0.22),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SheenBandPainter oldDelegate) =>
       oldDelegate.color != color;
 }
