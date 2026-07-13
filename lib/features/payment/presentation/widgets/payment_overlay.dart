@@ -63,7 +63,11 @@ class _PaymentOverlayState extends State<PaymentOverlay>
         final completed = state.phase == PaymentPhase.completed;
 
         return Positioned.fill(
-          child: BackdropFilter(
+          // Transparent Material so text/buttons render normally (without it,
+          // Text on this overlay shows Flutter's yellow "no Material" underlines).
+          child: Material(
+            type: MaterialType.transparency,
+            child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               decoration: BoxDecoration(
@@ -102,6 +106,7 @@ class _PaymentOverlayState extends State<PaymentOverlay>
                 ),
               ),
             ),
+          ),
           ),
         );
       },
