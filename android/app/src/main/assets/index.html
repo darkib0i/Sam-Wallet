@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <title>Samsung Wallet</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+    }
+    :root {
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --surface-2: #2a2a2c;
+      --text: #ffffff;
+      --text-dim: #9a9a9d;
+      --accent: #1b6ef3;
+      --success: #2ec36b;
+      --card-radius: 18px;
+    }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 22px 10px;
+    }
+    .header h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.2px; }
+    .header-actions { display: flex; align-items: center; gap: 18px; }
+    .icon-btn {
+      width: 26px; height: 26px; color: var(--text); position: relative;
+      background: none; border: none; cursor: pointer;
+    }
+    .icon-btn svg { width: 100%; height: 100%; display: block; }
+    .badge-dot {
+      position: absolute; top: -1px; right: -1px; width: 7px; height: 7px;
+      border-radius: 50%; background: #ff8a00;
+    }
+    .banner {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); margin: 8px 16px; padding: 16px 14px; border-radius: 16px;
+    }
+    .banner .wallet-emoji { font-size: 30px; }
+    .banner p { font-size: 15px; line-height: 1.35; flex: 1; color: #e6e6e6; }
+    .banner .close {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim); border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .categories {
+      display: flex; align-items: center; justify-content: center; gap: 26px;
+      padding: 18px 0 14px;
+    }
+    .category { display: flex; align-items: center; gap: 9px; font-size: 18px; font-weight: 600; color: var(--text); }
+    .category .chip { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .chip.voucher { background: #c9a877; }
+    .chip.member { background: #e29ac4; }
+    .cat-divider { width: 1px; height: 20px; background: #3a3a3c; }
+    .card-area {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 6px; position: relative;
+    }
+    .pay-card {
+      width: calc(100% - 44px); aspect-ratio: 1.586 / 1; border-radius: var(--card-radius);
+      background: linear-gradient(115deg, #0f2f6b 0%, #16407f 42%, #1f6fd6 62%, #2f8ff0 100%);
+      position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      color: #fff;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease;
+      will-change: transform;
+    }
+    .pay-card::before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(120% 90% at 90% 20%, rgba(255,255,255,0.18), transparent 55%),
+        repeating-linear-gradient(105deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 9px);
+      pointer-events: none;
+    }
+    .card-brand { position: absolute; top: 20px; left: 22px; font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }
+    .card-brand small { display: block; font-size: 10px; font-weight: 500; opacity: 0.85; }
+    .card-flex { position: absolute; top: 20px; right: 22px; text-align: right; font-size: 16px; font-weight: 800; line-height: 1.05; letter-spacing: 0.5px; }
+    .card-flex span { font-weight: 500; }
+    .card-number { position: absolute; bottom: 20px; left: 22px; font-size: 24px; font-weight: 600; letter-spacing: 2px; }
+    .card-network { position: absolute; bottom: 18px; right: 22px; text-align: right; }
+    .card-network b { font-size: 26px; font-style: italic; font-weight: 800; letter-spacing: 0.5px; }
+    .card-network small { display: block; font-size: 11px; letter-spacing: 3px; opacity: 0.9; }
+    .pin-pill {
+      margin-top: 40px; background: var(--surface); color: var(--text); border: none;
+      border-radius: 22px; padding: 11px 30px; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer;
+    }
+    .nfc-status { margin-top: 22px; font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+    .nfc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .bottom-tabs { display: flex; justify-content: space-around; padding: 18px 0 26px; }
+    .bottom-tab { font-size: 18px; font-weight: 600; color: var(--text-dim); position: relative; padding-bottom: 6px; }
+    .bottom-tab.active { color: var(--text); }
+    .bottom-tab.active::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 0; height: 3px; border-radius: 2px; background: var(--text); }
+    .pay-overlay {
+      position: fixed; inset: 0; max-width: 480px; margin: 0 auto;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 50;
+    }
+    .pay-overlay.show { opacity: 1; pointer-events: auto; }
+    .ring { width: 130px; height: 130px; position: relative; display: flex; align-items: center; justify-content: center; }
+    .ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring .track { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 6; }
+    .ring .progress { fill: none; stroke: var(--success); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 383; stroke-dashoffset: 383; }
+    .pay-overlay.show .ring .progress { animation: fill-ring 0.7s ease forwards; }
+    @keyframes fill-ring { to { stroke-dashoffset: 0; } }
+    .check { width: 60px; height: 60px; opacity: 0; }
+    .check path { stroke: var(--success); stroke-width: 7; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; }
+    .pay-overlay.show .check { animation: show-check 0.3s 0.55s forwards; }
+    .pay-overlay.show .check path { animation: draw-check 0.4s 0.6s forwards; }
+    @keyframes show-check { to { opacity: 1; } }
+    @keyframes draw-check { to { stroke-dashoffset: 0; } }
+    .pay-msg { font-size: 22px; font-weight: 700; opacity: 0; }
+    .pay-sub { font-size: 15px; color: var(--text-dim); opacity: 0; }
+    .pay-overlay.show .pay-msg { animation: rise 0.4s 0.75s forwards; }
+    .pay-overlay.show .pay-sub { animation: rise 0.4s 0.9s forwards; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .test-trigger {
+      position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff; border: none; border-radius: 20px;
+      padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; opacity: 0.85; z-index: 40;
+    }
+  </style>
+</head>
+<body spellcheck="false">
+  <header class="header">
+    <h1>Samsung Wallet</h1>
+    <div class="header-actions">
+      <button class="icon-btn" aria-label="Add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+      <button class="icon-btn" aria-label="Announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8a5 5 0 0 1 0 8"/>
+        </svg>
+        <span class="badge-dot"></span>
+      </button>
+      <button class="icon-btn" aria-label="More">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="banner">
+    <span class="wallet-emoji">&#128092;</span>
+    <p>Add your membership cards to get and use points.</p>
+    <button class="close" aria-label="Dismiss" onclick="this.parentElement.style.display='none'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="categories">
+    <div class="category"><span class="chip voucher">&#127991;</span>Vouchers</div>
+    <div class="cat-divider"></div>
+    <div class="category"><span class="chip member">&#9646;&#9646;</span>Memberships</div>
+  </div>
+
+  <div class="card-area">
+    <div class="pay-card" id="payCard">
+      <div class="card-brand">AL ANSARI EXCHANGE<small>&#1575;&#1604;&#1571;&#1606;&#1589;&#1575;&#1585;&#1610; &#1604;&#1604;&#1589;&#1585;&#1575;&#1601;&#1577;</small></div>
+      <div class="card-flex">FLEXIBLE<br><span>PAY</span></div>
+      <div class="card-number">&#8226;&#8226;&#8226;&#8226; 7792</div>
+      <div class="card-network"><b>VISA</b><small>PLATINUM</small></div>
+    </div>
+
+    <button class="pin-pill">PIN</button>
+
+    <div class="nfc-status">
+      <span class="nfc-dot"></span>
+      <span>Hold near a terminal to pay</span>
+    </div>
+  </div>
+
+  <nav class="bottom-tabs">
+    <div class="bottom-tab active">Quick access</div>
+    <div class="bottom-tab">All</div>
+  </nav>
+
+  <button class="test-trigger" id="testTrigger">Simulate NFC tap (test)</button>
+
+  <div class="pay-overlay" id="payOverlay">
+    <div class="ring">
+      <svg viewBox="0 0 130 130">
+        <circle class="track" cx="65" cy="65" r="61"/>
+        <circle class="progress" cx="65" cy="65" r="61"/>
+      </svg>
+      <svg class="check" viewBox="0 0 60 60">
+        <path d="M14 32 L26 44 L47 18"/>
+      </svg>
+    </div>
+    <div class="pay-msg">Payment complete</div>
+    <div class="pay-sub">&#8226;&#8226;&#8226;&#8226; 7792 &#183; VISA Platinum</div>
+  </div>
+
+  <script>
+    var overlay = document.getElementById('payOverlay');
+    var animating = false;
+
+    // The ONLY entry point for the payment animation. Native code
+    // (MainActivity.onTagDiscovered) calls this when the phone's NFC hardware
+    // senses a real field. Nothing else triggers it on its own.
+    function runPaymentAnimation() {
+      if (animating) return;
+      animating = true;
+
+      if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
+
+      overlay.classList.add('show');
+      setTimeout(function () {
+        overlay.classList.remove('show');
+        animating = false;
+      }, 2600);
+    }
+
+    // Native NFC bridge: Android calls window.onNfcTap() on tag discovery.
+    window.onNfcTap = runPaymentAnimation;
+
+    // Manual fallback for testing on devices/emulators without NFC hardware.
+    document.getElementById('testTrigger').addEventListener('click', runPaymentAnimation);
+  </script>
+</body>
+</html>
